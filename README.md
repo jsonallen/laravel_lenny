@@ -1,6 +1,6 @@
-# Laravel Larry - Shell Scripts for Server Provisioning & Deployment
+# Laravel Lenny - Shell Scripts for Server Provisioning & Deployment
 
-Laravel Larry is a simple set of bash scripts for configuring and hosting multiple Laravel applications on a single **Ubuntu 24.04 LTS** server. There are no confusing abstractions to deal with or monthly subscription costs. Just some basic shell scripts that get the job done.
+Laravel Lenny is a simple set of bash scripts for configuring and hosting multiple Laravel applications on a single **Ubuntu 24.04 LTS** server. There are no confusing abstractions to deal with or monthly subscription costs. Just some basic shell scripts that get the job done.
 
 **Requirements:**
 - Ubuntu 24.04 LTS (fresh installation recommended)
@@ -18,7 +18,7 @@ Laravel Larry is a simple set of bash scripts for configuring and hosting multip
 
 ## Philosophy
 
-Laravel Larry uses a **three-script approach** to separate concerns:
+Laravel Lenny uses a **three-script approach** to separate concerns:
 
 1. **Server Provisioning** - One-time setup of the base Laravel environment
 2. **Site Setup** - Add individual Laravel sites to the server
@@ -295,9 +295,9 @@ sudo tail -f /var/log/nginx/app.example.com-error.log
 
 **Per-Site:** Directory, database, Nginx config, Supervisor config
 
-## Why "Laravel Larry"?
+## Why "Laravel Lenny"?
 
-Because every good deployment system needs a name, and Larry rhymes with scary (which deployments shouldn't be). Plus, it's a friendly name for your Laravel deployment companion!
+Because every good deployment system needs a name, and Lenny is a friendly companion for your Laravel deployment journey. Simple, approachable, and gets the job done!
 
 ## TODO
 
