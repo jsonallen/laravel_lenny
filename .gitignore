@@ -1,0 +1,29 @@
+# OS Files
+.DS_Store
+Thumbs.db
+
+# Editor/IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Temporary files
+*.tmp
+*.bak
+*.log
+
+# SSH Keys (if accidentally placed in project)
+*.pem
+*.key
+id_rsa*
+id_ed25519*
+
+# Environment-specific configs
+.env
+*.local
+
+# Testing/Development
+test/
+tmp/
