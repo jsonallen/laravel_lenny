@@ -1,5 +1,9 @@
 # Laravel Lenny - Shell Scripts for Server Provisioning & Deployment
 
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/3cf23e5d-cfaa-4e35-8ed7-4fec4cfeb0e9" alt="Laravel Lenny" width="128" style="border-radius: 16px;" />
+</p>
+
 Laravel Lenny is a simple set of bash scripts for configuring and hosting multiple Laravel applications on a single **Ubuntu 24.04 LTS** server. There are no confusing abstractions to deal with or monthly subscription costs. Just some basic shell scripts that get the job done.
 
 **Requirements:**
