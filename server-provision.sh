@@ -556,6 +556,129 @@ display_post_install_info() {
     echo ""
 }
 
+verify_provisioning() {
+    echo ""
+    echo -e "${BLUE}========================================${NC}"
+    echo -e "${BLUE}Verifying Provisioning${NC}"
+    echo -e "${BLUE}========================================${NC}"
+    echo ""
+
+    local all_checks_passed=true
+
+    # Check 1: PHP 8.3 installed
+    if command_exists php && php -v | grep -q "PHP 8.3"; then
+        print_success "✓ PHP 8.3 installed"
+    else
+        print_error "✗ PHP 8.3 not installed"
+        all_checks_passed=false
+    fi
+
+    # Check 2: Composer installed
+    if command_exists composer; then
+        print_success "✓ Composer installed"
+    else
+        print_error "✗ Composer not installed"
+        all_checks_passed=false
+    fi
+
+    # Check 3: Node.js installed
+    if command_exists node && node -v | grep -q "v22"; then
+        print_success "✓ Node.js 22.x installed"
+    else
+        print_error "✗ Node.js 22.x not installed"
+        all_checks_passed=false
+    fi
+
+    # Check 4: MySQL installed and running
+    if command_exists mysql && systemctl is-active --quiet mysql; then
+        print_success "✓ MySQL installed and running"
+    else
+        print_error "✗ MySQL not installed or not running"
+        all_checks_passed=false
+    fi
+
+    # Check 5: Redis installed and running
+    if command_exists redis-server && systemctl is-active --quiet redis-server; then
+        print_success "✓ Redis installed and running"
+    else
+        print_error "✗ Redis not installed or not running"
+        all_checks_passed=false
+    fi
+
+    # Check 6: Nginx installed and running
+    if command_exists nginx && systemctl is-active --quiet nginx; then
+        print_success "✓ Nginx installed and running"
+    else
+        print_error "✗ Nginx not installed or not running"
+        all_checks_passed=false
+    fi
+
+    # Check 7: Supervisor installed and running
+    if command_exists supervisorctl && systemctl is-active --quiet supervisor; then
+        print_success "✓ Supervisor installed and running"
+    else
+        print_error "✗ Supervisor not installed or not running"
+        all_checks_passed=false
+    fi
+
+    # Check 8: Laravel user exists
+    if id "$APP_USER" &>/dev/null; then
+        print_success "✓ Laravel user created: $APP_USER"
+    else
+        print_error "✗ Laravel user missing: $APP_USER"
+        all_checks_passed=false
+    fi
+
+    # Check 9: SSH key generated
+    if [ -f "/home/$APP_USER/.ssh/id_ed25519" ]; then
+        print_success "✓ SSH key generated for $APP_USER"
+    else
+        print_error "✗ SSH key missing for $APP_USER"
+        all_checks_passed=false
+    fi
+
+    # Check 10: Deployment script installed
+    if [ -f "/usr/local/bin/laravel-site-deploy" ] && [ -x "/usr/local/bin/laravel-site-deploy" ]; then
+        print_success "✓ Deployment script installed"
+    else
+        print_error "✗ Deployment script missing or not executable"
+        all_checks_passed=false
+    fi
+
+    # Check 11: PHP-FPM running
+    if systemctl is-active --quiet php8.3-fpm; then
+        print_success "✓ PHP-FPM 8.3 running"
+    else
+        print_error "✗ PHP-FPM 8.3 not running"
+        all_checks_passed=false
+    fi
+
+    # Check 12: Sudoers file for laravel user
+    if [ -f "/etc/sudoers.d/laravel-deploy" ]; then
+        print_success "✓ Sudo permissions configured for $APP_USER"
+    else
+        print_error "✗ Sudo permissions not configured for $APP_USER"
+        all_checks_passed=false
+    fi
+
+    echo ""
+    if [ "$all_checks_passed" = true ]; then
+        echo -e "${GREEN}========================================${NC}"
+        echo -e "${GREEN}✓ All Provisioning Checks Passed!${NC}"
+        echo -e "${GREEN}========================================${NC}"
+        echo ""
+        return 0
+    else
+        echo -e "${RED}========================================${NC}"
+        echo -e "${RED}✗ Some Provisioning Checks Failed${NC}"
+        echo -e "${RED}========================================${NC}"
+        echo ""
+        echo -e "${YELLOW}Please review the errors above and fix them before proceeding.${NC}"
+        echo ""
+        return 1
+    fi
+}
+
 ################################################################################
 # Main Execution
 ################################################################################
@@ -580,6 +703,8 @@ main() {
     install_deployment_script
 
     display_post_install_info
+
+    verify_provisioning
 }
 
 # Run main function

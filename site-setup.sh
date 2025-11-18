@@ -297,13 +297,13 @@ setup_cron() {
     print_status "Checking Laravel scheduler cron job..."
 
     # Check if a scheduler cron job exists for any site
-    if crontab -u "$APP_USER" -l 2>/dev/null | grep -q "artisan schedule:run"; then
+    if sudo -u "$APP_USER" crontab -l 2>/dev/null | grep -q "artisan schedule:run"; then
         print_warning "Laravel scheduler cron job already exists"
         return
     fi
 
     # Add Laravel scheduler to crontab (runs for all sites)
-    (crontab -u "$APP_USER" -l 2>/dev/null; echo "* * * * * cd /opt && for dir in */; do [ -f \"\$dir/artisan\" ] && cd \"\$dir\" && php artisan schedule:run >> /dev/null 2>&1; cd /opt; done") | crontab -u "$APP_USER" -
+    (sudo -u "$APP_USER" crontab -l 2>/dev/null; echo "* * * * * cd /opt && for dir in */; do [ -f \"\$dir/artisan\" ] && cd \"\$dir\" && php artisan schedule:run >> /dev/null 2>&1; cd /opt; done") | sudo -u "$APP_USER" crontab -
 
     print_success "Laravel scheduler cron job configured"
 }
@@ -365,6 +365,97 @@ display_summary() {
     echo ""
 }
 
+verify_setup() {
+    echo ""
+    echo -e "${BLUE}========================================${NC}"
+    echo -e "${BLUE}Verifying Setup${NC}"
+    echo -e "${BLUE}========================================${NC}"
+    echo ""
+
+    local all_checks_passed=true
+
+    # Check 1: Site directory exists
+    if [ -d "$SITE_DIR" ]; then
+        print_success "✓ Site directory exists: $SITE_DIR"
+    else
+        print_error "✗ Site directory missing: $SITE_DIR"
+        all_checks_passed=false
+    fi
+
+    # Check 2: Database exists
+    if mysql -se "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME='${DB_NAME}'" 2>/dev/null | grep -q "${DB_NAME}"; then
+        print_success "✓ Database exists: $DB_NAME"
+    else
+        print_error "✗ Database missing: $DB_NAME"
+        all_checks_passed=false
+    fi
+
+    # Check 3: Database user exists
+    if mysql -se "SELECT User FROM mysql.user WHERE User='${DB_USER}' AND Host='localhost'" 2>/dev/null | grep -q "${DB_USER}"; then
+        print_success "✓ Database user exists: $DB_USER"
+    else
+        print_error "✗ Database user missing: $DB_USER"
+        all_checks_passed=false
+    fi
+
+    # Check 4: Nginx config exists
+    if [ -f "$NGINX_CONF" ]; then
+        print_success "✓ Nginx config exists: $NGINX_CONF"
+    else
+        print_error "✗ Nginx config missing: $NGINX_CONF"
+        all_checks_passed=false
+    fi
+
+    # Check 5: Nginx config is enabled
+    if [ -L "/etc/nginx/sites-enabled/${DOMAIN}" ]; then
+        print_success "✓ Nginx site enabled: $DOMAIN"
+    else
+        print_error "✗ Nginx site not enabled: $DOMAIN"
+        all_checks_passed=false
+    fi
+
+    # Check 6: Supervisor config exists
+    if [ -f "$SUPERVISOR_CONF" ]; then
+        print_success "✓ Supervisor config exists: $SUPERVISOR_CONF"
+    else
+        print_error "✗ Supervisor config missing: $SUPERVISOR_CONF"
+        all_checks_passed=false
+    fi
+
+    # Check 7: Cron job exists
+    if sudo -u "$APP_USER" crontab -l 2>/dev/null | grep -q "artisan schedule:run"; then
+        print_success "✓ Cron job configured for Laravel scheduler"
+    else
+        print_error "✗ Cron job missing for Laravel scheduler"
+        all_checks_passed=false
+    fi
+
+    # Check 8: Credentials file exists
+    if [ -f "$DB_CRED_FILE" ]; then
+        print_success "✓ Credentials file saved: $DB_CRED_FILE"
+    else
+        print_error "✗ Credentials file missing: $DB_CRED_FILE"
+        all_checks_passed=false
+    fi
+
+    echo ""
+    if [ "$all_checks_passed" = true ]; then
+        echo -e "${GREEN}========================================${NC}"
+        echo -e "${GREEN}✓ All Setup Checks Passed!${NC}"
+        echo -e "${GREEN}========================================${NC}"
+        echo ""
+        return 0
+    else
+        echo -e "${RED}========================================${NC}"
+        echo -e "${RED}✗ Some Setup Checks Failed${NC}"
+        echo -e "${RED}========================================${NC}"
+        echo ""
+        echo -e "${YELLOW}Please review the errors above and fix them before proceeding.${NC}"
+        echo ""
+        return 1
+    fi
+}
+
 ################################################################################
 # Main Execution
 ################################################################################
@@ -376,3 +467,5 @@ configure_supervisor
 setup_cron
 
 display_summary
+
+verify_setup
